@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Metal {
+  GOLD
+  SILVER
+}
+
+model Item {
+  id               String    @id @default(cuid())
+  itemCode         String    @unique
+  name             String
+  type             String
+  metal            Metal
+  purityPercent    Float
+  grossWeightGrams Float?
+  netWeightGrams   Float
+  makingChargePct  Float?
+  notes            String?
+  photoUrl         String?
+  dateAdded        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  soldAt           DateTime?
+  sale             Sale?
+}
+
+model Rate {
+  id           String   @id @default(cuid())
+  metal        Metal    @unique
+  pricePerGram Float
+  updatedAt    DateTime @updatedAt
+}
+
+model Sale {
+  id            String   @id @default(cuid())
+  itemId        String   @unique
+  item          Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  sellingPrice  Float
+  ratePerGram   Float
+  customerName  String?
+  customerPhone String?
+  notes         String?
+  soldAt        DateTime @default(now())
+}
