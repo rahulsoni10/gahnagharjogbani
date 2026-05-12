@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { FormPageShell } from "@/components/inventory/FormPageShell";
 import { InlineRateCard } from "@/components/inventory/InlineRateCard";
-import { calcMarketPrice, calcMakingCharge, calcTotalItemCost, calcSaleProfit, formatCurrency, goldPurityLabel, resolveStockMetalCost } from "@/lib/calculations";
+import { calcMarketPrice, calcMakingCharge, calcTotalItemCost, calcSaleProfit, formatCurrency, goldPurityLabel, resolveStockMetalCost, toEffectiveRate } from "@/lib/calculations";
 
 interface Item {
   id: string;
@@ -26,6 +26,8 @@ interface Item {
   grossWeightGrams: number | null;
   stockMetalCost: number | null;
   stockRatePerGram: number | null;
+  makingChargePct: number | null;
+  makingChargeAmount: number | null;
   notes: string | null;
   photoUrl: string | null;
   soldAt: string | null;
@@ -56,7 +58,11 @@ function NewSaleForm() {
       setItems(data);
       if (preselectedItemId) {
         const found = data.find((i) => i.id === preselectedItemId);
-        if (found) setSelectedItem(found);
+        if (found) {
+          setSelectedItem(found);
+          setMakingChargePct(String(found.makingChargePct ?? 0));
+          setMakingChargeAmount(String(found.makingChargeAmount ?? 0));
+        }
       }
     } catch {
       toast.error("Failed to load items");
@@ -66,13 +72,14 @@ function NewSaleForm() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
-  // Auto-fill selling price from the current metal rate and making charges.
+  // Auto-fill selling price from the current metal rate, wastage (%), and making charge (₹).
   useEffect(() => {
     if (!selectedItem || liveRate == null) return;
+    const effectiveRate = toEffectiveRate(liveRate, selectedItem.metal);
     const price = calcTotalItemCost(
       selectedItem.netWeightGrams,
       selectedItem.purityPercent,
-      liveRate,
+      effectiveRate,
       parseFloat(makingChargePct) || 0,
       parseFloat(makingChargeAmount) || 0
     );
@@ -91,25 +98,29 @@ function NewSaleForm() {
     setSelectedItem(item);
     setSearchQuery("");
     setShowDropdown(false);
-    setMakingChargePct("0");
-    setMakingChargeAmount("0");
+    setMakingChargePct(String(item.makingChargePct ?? 0));
+    setMakingChargeAmount(String(item.makingChargeAmount ?? 0));
   }
 
   const stockMetalCost = selectedItem ? resolveStockMetalCost(selectedItem) : null;
 
-  const marketPrice = selectedItem && liveRate != null
-    ? calcMarketPrice(selectedItem.netWeightGrams, selectedItem.purityPercent, liveRate)
+  const effectiveLiveRate = selectedItem && liveRate != null
+    ? toEffectiveRate(liveRate, selectedItem.metal)
+    : null;
+
+  const marketPrice = effectiveLiveRate != null
+    ? calcMarketPrice(selectedItem!.netWeightGrams, selectedItem!.purityPercent, effectiveLiveRate)
     : null;
 
   const makingCharge = marketPrice != null
     ? calcMakingCharge(marketPrice, parseFloat(makingChargePct) || 0, parseFloat(makingChargeAmount) || 0)
     : null;
 
-  const suggestedSellingPrice = selectedItem && liveRate != null
+  const suggestedSellingPrice = effectiveLiveRate != null
     ? calcTotalItemCost(
-        selectedItem.netWeightGrams,
-        selectedItem.purityPercent,
-        liveRate,
+        selectedItem!.netWeightGrams,
+        selectedItem!.purityPercent,
+        effectiveLiveRate,
         parseFloat(makingChargePct) || 0,
         parseFloat(makingChargeAmount) || 0
       )
@@ -292,7 +303,7 @@ function NewSaleForm() {
               </div>
               {isGold && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Making Charge</p>
+                  <p className="text-sm text-muted-foreground">Wastage & charges</p>
                   <p className="text-xl font-bold">
                     {makingCharge != null ? formatCurrency(makingCharge) : "—"}
                   </p>
@@ -316,7 +327,7 @@ function NewSaleForm() {
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="makingChargePct" className="text-base font-semibold">Making Charge (%)</Label>
+                <Label htmlFor="makingChargePct" className="text-base font-semibold">Wastage (%)</Label>
                 <div className="relative">
                   <Input
                     id="makingChargePct"
@@ -333,7 +344,7 @@ function NewSaleForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="makingChargeAmount" className="text-base font-semibold">Making Charge (₹)</Label>
+                <Label htmlFor="makingChargeAmount" className="text-base font-semibold">Making charge (₹)</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₹</span>
                   <Input

@@ -6,7 +6,7 @@ A password-protected web app to manage your jewellery shop's gold and silver sto
 
 - **Dashboard** — total gold/silver pure weight, market value, item count
 - **Stock Management** — add, edit, delete jewellery items with full details
-- **Gold items**: item code, name, type, purity (24K/22K/18K/14.4K), gross weight, net weight, making charge %, quantity
+- **Gold items**: item code, name, type, purity (24K/22K/18K/14.4K), gross weight, net weight, Wastage %, quantity
 - **Silver items**: item code, name, type, purity % (free entry), net weight, quantity
 - **Live price preview** — shows pure weight + market price as you fill the form
 - **Rates page** — set daily gold and silver per-gram rates

@@ -21,6 +21,9 @@ import {
   calcPureWeight,
   calcMarketPrice,
   calcStockMetalCost,
+  calcMakingCharge,
+  calcTotalItemCost,
+  toEffectiveRate,
   GOLD_22K_PURITY,
   GOLD_PURITIES,
   GOLD_TYPES,
@@ -39,6 +42,8 @@ interface ItemFormData {
   purityPercent: string;
   grossWeightGrams: string;
   netWeightGrams: string;
+  makingChargePct: string;
+  makingChargeAmount: string;
   notes: string;
 }
 
@@ -55,6 +60,8 @@ const EMPTY_FORM: ItemFormData = {
   purityPercent: String(GOLD_22K_PURITY),
   grossWeightGrams: "",
   netWeightGrams: "",
+  makingChargePct: "0",
+  makingChargeAmount: "0",
   notes: "",
 };
 
@@ -74,6 +81,8 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
         next.purityPercent = value === "GOLD" ? String(GOLD_22K_PURITY) : "";
         next.grossWeightGrams = "";
         next.type = "";
+        next.makingChargePct = "0";
+        next.makingChargeAmount = "0";
       }
       return next;
     });
@@ -86,12 +95,21 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
   const netWt = parseFloat(form.netWeightGrams) || 0;
   const purity = parseFloat(form.purityPercent) || 0;
   const pureWt = calcPureWeight(netWt, purity);
-  const marketPrice = liveRate != null && netWt > 0 && purity > 0
-    ? calcMarketPrice(netWt, purity, liveRate)
+  const effectiveRate = liveRate != null ? toEffectiveRate(liveRate, form.metal) : null;
+  const marketPrice = effectiveRate != null && netWt > 0 && purity > 0
+    ? calcMarketPrice(netWt, purity, effectiveRate)
     : null;
-  const stockMetalCost = liveRate != null && netWt > 0 && purity > 0
-    ? calcStockMetalCost(netWt, purity, liveRate)
+  const stockMetalCost = effectiveRate != null && netWt > 0 && purity > 0
+    ? calcStockMetalCost(netWt, purity, effectiveRate)
     : null;
+  const mcPct = parseFloat(form.makingChargePct) || 0;
+  const mcAmt = parseFloat(form.makingChargeAmount) || 0;
+  const stockMakingCharge =
+    stockMetalCost != null ? calcMakingCharge(stockMetalCost, mcPct, mcAmt) : null;
+  const totalStockCost =
+    stockMetalCost != null && effectiveRate != null
+      ? calcTotalItemCost(netWt, purity, effectiveRate, mcPct, mcAmt)
+      : null;
 
   async function handlePhotoUpload(file: File) {
     setUploadingPhoto(true);
@@ -137,6 +155,8 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
         purityPercent: parseFloat(form.purityPercent),
         grossWeightGrams: isGold && form.grossWeightGrams ? parseFloat(form.grossWeightGrams) : null,
         netWeightGrams: parseFloat(form.netWeightGrams),
+        makingChargePct: mcPct,
+        makingChargeAmount: mcAmt,
         ...(mode === "create" && liveRate != null ? { stockRatePerGram: liveRate } : {}),
         notes: form.notes.trim() || null,
         photoUrl: photoUrl.trim() || null,
@@ -342,18 +362,58 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
       {/* Inline Rate + Live Preview */}
       <InlineRateCard metal={form.metal} onRateChange={setLiveRate} />
 
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Wastage & charges (stock)</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="stockMakingChargePct" className="text-sm font-semibold">Wastage (%)</Label>
+            <div className="relative">
+              <Input
+                id="stockMakingChargePct"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0"
+                value={form.makingChargePct}
+                onChange={(e) => set("makingChargePct", e.target.value)}
+                className="pr-8 h-10"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="stockMakingChargeAmount" className="text-sm font-semibold">Making charge (₹)</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
+              <Input
+                id="stockMakingChargeAmount"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="0"
+                value={form.makingChargeAmount}
+                onChange={(e) => set("makingChargeAmount", e.target.value)}
+                className="pl-7 h-10"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {netWt > 0 && purity > 0 && (
         <Card className={`border-2 ${isGold ? "border-amber-200 bg-amber-50/40" : "border-slate-200 bg-slate-50/40"}`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">Live Calculation</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-6 sm:grid-cols-3">
+          <CardContent className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
             <div>
-              <p className="text-sm text-muted-foreground">Pure {isGold ? "Gold" : "Silver"} Weight</p>
+              <p className="text-sm text-muted-foreground">Pure {isGold ? "Gold" : "Silver"} weight</p>
               <p className="text-xl font-bold">{pureWt.toFixed(3)} g</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Pure Meta Cost</p>
+              <p className="text-sm text-muted-foreground">Metal cost (at rate)</p>
               {stockMetalCost != null ? (
                 <p className={`text-xl font-bold ${isGold ? "text-amber-700" : "text-slate-600"}`}>
                   {formatCurrency(stockMetalCost)}
@@ -363,7 +423,27 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
               )}
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Current Market Value</p>
+              <p className="text-sm text-muted-foreground">Wastage & charges</p>
+              {stockMakingCharge != null ? (
+                <p className={`text-xl font-bold ${isGold ? "text-amber-700" : "text-slate-600"}`}>
+                  {formatCurrency(stockMakingCharge)}
+                </p>
+              ) : (
+                <p className="text-base text-muted-foreground mt-1">Set rate above</p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Total stock cost</p>
+              {totalStockCost != null ? (
+                <p className={`text-xl font-bold ${isGold ? "text-amber-800" : "text-slate-700"}`}>
+                  {formatCurrency(totalStockCost)}
+                </p>
+              ) : (
+                <p className="text-base text-muted-foreground mt-1">Set rate above</p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Metal value (same rate)</p>
               {marketPrice != null ? (
                 <p className={`text-xl font-bold ${isGold ? "text-amber-700" : "text-slate-600"}`}>
                   {formatCurrency(marketPrice)}

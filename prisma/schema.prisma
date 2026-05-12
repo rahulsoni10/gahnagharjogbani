@@ -23,6 +23,8 @@ model Item {
   netWeightGrams   Float
   stockRatePerGram Float?
   stockMetalCost   Float?
+  makingChargePct     Float?
+  makingChargeAmount  Float?
   notes            String?
   photoUrl         String?
   dateAdded        DateTime  @default(now())

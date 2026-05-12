@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -63,6 +64,8 @@ interface Item {
   netWeightGrams: number;
   stockMetalCost: number | null;
   stockRatePerGram: number | null;
+  makingChargePct: number | null;
+  makingChargeAmount: number | null;
   notes: string | null;
   dateAdded: string;
   soldAt: string | null;
@@ -86,6 +89,7 @@ function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; s
 }
 
 export function StockTable() {
+  const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
   const [rates, setRates] = useState<Rate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,6 +157,7 @@ export function StockTable() {
     if (res.ok) {
       toast.success("Item deleted");
       setItems((prev) => prev.filter((i) => i.id !== id));
+      router.refresh();
     } else {
       toast.error("Failed to delete item");
     }

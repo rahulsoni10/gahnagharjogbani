@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { calcStockMetalCost, normalizePurityPercent } from "@/lib/calculations";
+import { calcStockMetalCost, normalizePurityPercent, toEffectiveRate } from "@/lib/calculations";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -48,6 +49,8 @@ export async function POST(request: NextRequest) {
       grossWeightGrams,
       netWeightGrams,
       stockRatePerGram,
+      makingChargePct,
+      makingChargeAmount,
       notes,
       photoUrl,
     } = body;
@@ -69,7 +72,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Metal rate is required to record stock cost" }, { status: 400 });
     }
 
-    const stockMetalCost = calcStockMetalCost(normalizedNetWeight, normalizedPurity, resolvedStockRate);
+    const stockMetalCost = calcStockMetalCost(
+      normalizedNetWeight,
+      normalizedPurity,
+      toEffectiveRate(resolvedStockRate, metal as "GOLD" | "SILVER")
+    );
+    const mcPct = makingChargePct != null ? Number(makingChargePct) : 0;
+    const mcAmt = makingChargeAmount != null ? Number(makingChargeAmount) : 0;
 
     const item = await prisma.item.create({
       data: {
@@ -82,11 +91,14 @@ export async function POST(request: NextRequest) {
         netWeightGrams: normalizedNetWeight,
         stockRatePerGram: resolvedStockRate,
         stockMetalCost,
+        makingChargePct: mcPct,
+        makingChargeAmount: mcAmt,
         notes: notes ? String(notes).trim() : null,
         photoUrl: photoUrl ? String(photoUrl).trim() : null,
       },
     });
 
+    revalidatePath("/");
     return NextResponse.json(item, { status: 201 });
   } catch (err: unknown) {
     if (

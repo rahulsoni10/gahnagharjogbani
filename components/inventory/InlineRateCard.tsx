@@ -80,7 +80,7 @@ export function InlineRateCard({ metal, onRateChange }: InlineRateCardProps) {
       <CardContent className="py-3 px-4">
         <div className="flex items-center gap-3 flex-wrap">
           <span className="text-sm font-semibold text-muted-foreground">
-            {label} Rate (₹/g):
+            {isGold ? "Gold Rate 22K (₹/g)" : "Silver Rate (₹/g)"}:
           </span>
 
           {editing ? (

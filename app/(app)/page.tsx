@@ -1,5 +1,7 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma";
-import { calcPureWeight, calcMarketPrice, formatCurrency } from "@/lib/calculations";
+import { calcPureWeight, calcMarketPrice, formatCurrency, toEffectiveRate } from "@/lib/calculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/inventory/PageHeader";
@@ -40,7 +42,7 @@ async function getDashboardData() {
     if (item.metal === "GOLD") {
       totalGoldPureWeight += pureWt;
       goldCount++;
-      if (goldRate) totalMarketValue += calcMarketPrice(item.netWeightGrams, item.purityPercent, goldRate.pricePerGram);
+      if (goldRate) totalMarketValue += calcMarketPrice(item.netWeightGrams, item.purityPercent, toEffectiveRate(goldRate.pricePerGram, "GOLD"));
     } else {
       totalSilverPureWeight += pureWt;
       silverCount++;

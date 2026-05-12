@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { normalizePurityPercent } from "@/lib/calculations";
 
@@ -27,6 +28,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       netWeightGrams,
       notes,
       photoUrl,
+      makingChargePct,
+      makingChargeAmount,
     } = body;
 
     const item = await prisma.item.update({
@@ -45,9 +48,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         ...(netWeightGrams !== undefined && { netWeightGrams: Number(netWeightGrams) }),
         ...(notes !== undefined && { notes: notes ? String(notes).trim() : null }),
         ...(photoUrl !== undefined && { photoUrl: photoUrl ? String(photoUrl).trim() : null }),
+        ...(makingChargePct !== undefined && { makingChargePct: Number(makingChargePct) }),
+        ...(makingChargeAmount !== undefined && { makingChargeAmount: Number(makingChargeAmount) }),
       },
     });
 
+    revalidatePath("/");
     return NextResponse.json({
       ...item,
       purityPercent: normalizePurityPercent(item.purityPercent),
@@ -69,6 +75,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
   try {
     await prisma.item.delete({ where: { id } });
+    revalidatePath("/");
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

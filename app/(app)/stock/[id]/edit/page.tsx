@@ -19,6 +19,8 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
     purityPercent: String(normalizePurityPercent(item.purityPercent)),
     grossWeightGrams: item.grossWeightGrams != null ? String(item.grossWeightGrams) : "",
     netWeightGrams: String(item.netWeightGrams),
+    makingChargePct: String(item.makingChargePct ?? 0),
+    makingChargeAmount: String(item.makingChargeAmount ?? 0),
     notes: item.notes ?? "",
     photoUrl: item.photoUrl ?? "",
   };

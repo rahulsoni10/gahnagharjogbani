@@ -6,6 +6,15 @@ export function normalizePurityPercent(purityPercent: number): number {
   return purityPercent;
 }
 
+/**
+ * Converts the user-entered metal rate to a 24K-equivalent (pure) rate for calculations.
+ * Gold: user enters 22K rate → multiply by (24/22) to get pure-gold equivalent.
+ * Silver: user enters pure silver rate → no conversion needed.
+ */
+export function toEffectiveRate(pricePerGram: number, metal: "GOLD" | "SILVER"): number {
+  return metal === "GOLD" ? pricePerGram * (24 / 22) : pricePerGram;
+}
+
 export function calcPureWeight(netWeightGrams: number, purityPercent: number): number {
   const purity = normalizePurityPercent(purityPercent);
   return (netWeightGrams * purity) / 100;
@@ -39,6 +48,7 @@ export const GOLD_PURITIES = [
   { label: "14.4K (60%)", value: 60 },
 ] as const;
 
+/** Rupees from wastage (%) on market price plus optional making charge (₹). */
 export function calcMakingCharge(
   marketPrice: number,
   makingChargePct?: number | null,
@@ -77,14 +87,24 @@ export interface StockCostItem {
   purityPercent: number;
   stockMetalCost?: number | null;
   stockRatePerGram?: number | null;
+  makingChargePct?: number | null;
+  makingChargeAmount?: number | null;
 }
 
-export function resolveStockMetalCost(item: StockCostItem): number | null {
+/** Metal-only acquisition value (stored or derived from rate). */
+export function resolveStockMetalOnlyCost(item: StockCostItem): number | null {
   if (item.stockMetalCost != null) return item.stockMetalCost;
   if (item.stockRatePerGram != null) {
     return calcStockMetalCost(item.netWeightGrams, item.purityPercent, item.stockRatePerGram);
   }
   return null;
+}
+
+/** Full stock acquisition cost: metal + wastage (%) and making charge (₹), same basis as sale pricing. */
+export function resolveStockMetalCost(item: StockCostItem): number | null {
+  const metal = resolveStockMetalOnlyCost(item);
+  if (metal == null) return null;
+  return metal + calcMakingCharge(metal, item.makingChargePct, item.makingChargeAmount);
 }
 
 export const GOLD_TYPES = [

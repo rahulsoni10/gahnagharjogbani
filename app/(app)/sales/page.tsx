@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Receipt, Plus, Search, Trash2, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 import { PageHeader } from "@/components/inventory/PageHeader";
@@ -37,6 +38,8 @@ interface SaleItem {
   netWeightGrams: number;
   stockMetalCost: number | null;
   stockRatePerGram: number | null;
+  makingChargePct: number | null;
+  makingChargeAmount: number | null;
   photoUrl: string | null;
 }
 
@@ -63,6 +66,7 @@ function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; s
 }
 
 export default function SalesPage() {
+  const router = useRouter();
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -118,6 +122,7 @@ export default function SalesPage() {
     if (res.ok) {
       toast.success("Sale undone — item returned to stock");
       setSales((prev) => prev.filter((s) => s.id !== id));
+      router.refresh();
     } else {
       toast.error("Failed to undo sale");
     }

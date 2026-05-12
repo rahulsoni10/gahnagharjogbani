@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { normalizePurityPercent } from "@/lib/calculations";
 
@@ -15,6 +16,8 @@ export async function GET() {
           netWeightGrams: true,
           stockMetalCost: true,
           stockRatePerGram: true,
+          makingChargePct: true,
+          makingChargeAmount: true,
           photoUrl: true,
         },
       },
@@ -64,6 +67,7 @@ export async function POST(request: NextRequest) {
       }),
     ]);
 
+    revalidatePath("/");
     return NextResponse.json(sale, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

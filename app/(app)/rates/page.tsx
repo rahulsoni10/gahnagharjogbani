@@ -64,7 +64,7 @@ function RateCard({
           <div>
             <CardTitle className="text-lg">{isGold ? "Gold" : "Silver"} Rate</CardTitle>
             <CardDescription>
-              {isGold ? "Price per gram of 24K (pure) gold" : "Price per gram of pure silver"}
+              {isGold ? "Price per gram of 22K gold" : "Price per gram of pure silver"}
             </CardDescription>
           </div>
         </div>
@@ -128,8 +128,8 @@ function RateCard({
 
         {rate && (
           <div className={`rounded-md p-2 text-xs ${isGold ? "bg-amber-50 text-amber-700" : "bg-slate-50 text-slate-700"}`}>
-            <strong>Example:</strong> 10g at {isGold ? "91.66% (22K)" : "92.5% purity"} →{" "}
-            ₹{(10 * (isGold ? GOLD_22K_PURITY : 92.5) / 100 * rate.pricePerGram).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+            <strong>Example:</strong> 10g of {isGold ? "22K gold" : "92.5% silver"} →{" "}
+            ₹{(isGold ? 10 * rate.pricePerGram : 10 * 92.5 / 100 * rate.pricePerGram).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
           </div>
         )}
       </CardContent>

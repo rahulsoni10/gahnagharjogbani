@@ -187,6 +187,8 @@ async function main() {
         netWeightGrams: demo.netWeightGrams,
         stockRatePerGram,
         stockMetalCost,
+        makingChargePct: demo.makingChargePct != null ? demo.makingChargePct : null,
+        makingChargeAmount: demo.makingChargeAmount != null ? demo.makingChargeAmount : null,
         notes: demo.notes ?? null,
         soldAt,
       },
