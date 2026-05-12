@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { FormPageShell } from "@/components/inventory/FormPageShell";
 import { InlineRateCard } from "@/components/inventory/InlineRateCard";
-import { calcPureWeight, calcMarketPrice, calcMakingCharge, calcTotalItemCost, formatCurrency, goldPurityLabel } from "@/lib/calculations";
+import { calcMarketPrice, calcMakingCharge, calcTotalItemCost, calcSaleProfit, formatCurrency, goldPurityLabel, resolveStockMetalCost } from "@/lib/calculations";
 
 interface Item {
   id: string;
@@ -24,6 +24,8 @@ interface Item {
   purityPercent: number;
   netWeightGrams: number;
   grossWeightGrams: number | null;
+  stockMetalCost: number | null;
+  stockRatePerGram: number | null;
   notes: string | null;
   photoUrl: string | null;
   soldAt: string | null;
@@ -64,19 +66,18 @@ function NewSaleForm() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
-  // Auto-fill selling price when item or rate changes
+  // Auto-fill selling price from the current metal rate and making charges.
   useEffect(() => {
-    if (selectedItem && liveRate != null) {
-      const price = calcTotalItemCost(
-        selectedItem.netWeightGrams,
-        selectedItem.purityPercent,
-        liveRate,
-        parseFloat(makingChargePct) || 0,
-        parseFloat(makingChargeAmount) || 0
-      );
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSellingPrice(price.toFixed(0));
-    }
+    if (!selectedItem || liveRate == null) return;
+    const price = calcTotalItemCost(
+      selectedItem.netWeightGrams,
+      selectedItem.purityPercent,
+      liveRate,
+      parseFloat(makingChargePct) || 0,
+      parseFloat(makingChargeAmount) || 0
+    );
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSellingPrice(price.toFixed(0));
   }, [selectedItem, liveRate, makingChargePct, makingChargeAmount]);
 
   const filteredItems = searchQuery.length > 0
@@ -94,9 +95,7 @@ function NewSaleForm() {
     setMakingChargeAmount("0");
   }
 
-  const pureWt = selectedItem
-    ? calcPureWeight(selectedItem.netWeightGrams, selectedItem.purityPercent)
-    : null;
+  const stockMetalCost = selectedItem ? resolveStockMetalCost(selectedItem) : null;
 
   const marketPrice = selectedItem && liveRate != null
     ? calcMarketPrice(selectedItem.netWeightGrams, selectedItem.purityPercent, liveRate)
@@ -106,7 +105,7 @@ function NewSaleForm() {
     ? calcMakingCharge(marketPrice, parseFloat(makingChargePct) || 0, parseFloat(makingChargeAmount) || 0)
     : null;
 
-  const totalCost = selectedItem && liveRate != null
+  const suggestedSellingPrice = selectedItem && liveRate != null
     ? calcTotalItemCost(
         selectedItem.netWeightGrams,
         selectedItem.purityPercent,
@@ -114,6 +113,11 @@ function NewSaleForm() {
         parseFloat(makingChargePct) || 0,
         parseFloat(makingChargeAmount) || 0
       )
+    : null;
+
+  const parsedSellingPrice = parseFloat(sellingPrice);
+  const estimatedProfit = stockMetalCost != null && Number.isFinite(parsedSellingPrice)
+    ? calcSaleProfit(parsedSellingPrice, stockMetalCost)
     : null;
 
   const isGold = selectedItem?.metal === "GOLD";
@@ -189,10 +193,7 @@ function NewSaleForm() {
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Net: <strong>{selectedItem.netWeightGrams.toFixed(3)}g</strong>
-                      {pureWt != null && (
-                        <> · Pure: <strong>{pureWt.toFixed(3)}g</strong></>
-                      )}
+                      Net weight: <strong>{selectedItem.netWeightGrams.toFixed(3)}g</strong>
                     </div>
                   </div>
                   <button
@@ -270,12 +271,18 @@ function NewSaleForm() {
         )}
 
         {/* Market price preview */}
-        {selectedItem && totalCost != null && (
+        {selectedItem && suggestedSellingPrice != null && (
           <Card className={`border-2 ${isGold ? "border-amber-200 bg-amber-50/40" : "border-slate-200 bg-slate-50/40"}`}>
-            <CardContent className="py-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <CardContent className="py-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <div>
-                <p className="text-sm text-muted-foreground">Pure Weight</p>
-                <p className="text-xl font-bold">{pureWt?.toFixed(3)} g</p>
+                <p className="text-sm text-muted-foreground">Net Weight</p>
+                <p className="text-xl font-bold">{selectedItem.netWeightGrams.toFixed(3)} g</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Stock Cost</p>
+                <p className="text-xl font-bold">
+                  {stockMetalCost != null ? formatCurrency(stockMetalCost) : "—"}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Metal Value</p>
@@ -292,9 +299,9 @@ function NewSaleForm() {
                 </div>
               )}
               <div>
-                <p className="text-sm text-muted-foreground">Total Cost</p>
+                <p className="text-sm text-muted-foreground">Live Selling Price</p>
                 <p className={`text-xl font-bold ${isGold ? "text-amber-800" : "text-slate-700"}`}>
-                  {formatCurrency(totalCost)}
+                  {formatCurrency(suggestedSellingPrice)}
                 </p>
               </div>
             </CardContent>
@@ -359,13 +366,13 @@ function NewSaleForm() {
                     className="pl-7 h-10 text-base font-semibold"
                   />
                 </div>
-                {totalCost != null && sellingPrice && (
+                {estimatedProfit != null && sellingPrice && (
                   <p className="text-sm text-muted-foreground">
-                    {parseFloat(sellingPrice) > totalCost
-                      ? `+${formatCurrency(parseFloat(sellingPrice) - totalCost)} above cost`
-                      : parseFloat(sellingPrice) < totalCost
-                        ? `${formatCurrency(totalCost - parseFloat(sellingPrice))} below cost`
-                        : "At cost"}
+                    Estimated profit:{" "}
+                    <span className={estimatedProfit >= 0 ? "text-emerald-700 font-medium" : "text-destructive font-medium"}>
+                      {formatCurrency(estimatedProfit)}
+                    </span>
+                    {stockMetalCost != null ? ` against stock cost of ${formatCurrency(stockMetalCost)}` : ""}
                   </p>
                 )}
               </div>

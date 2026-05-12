@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { calcStockMetalCost, normalizePurityPercent } from "@/lib/calculations";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -26,7 +27,12 @@ export async function GET(request: NextRequest) {
     orderBy: { dateAdded: "desc" },
   });
 
-  return NextResponse.json(items);
+  return NextResponse.json(
+    items.map((item) => ({
+      ...item,
+      purityPercent: normalizePurityPercent(item.purityPercent),
+    }))
+  );
 }
 
 export async function POST(request: NextRequest) {
@@ -41,6 +47,7 @@ export async function POST(request: NextRequest) {
       purityPercent,
       grossWeightGrams,
       netWeightGrams,
+      stockRatePerGram,
       notes,
       photoUrl,
     } = body;
@@ -49,15 +56,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    const normalizedPurity = normalizePurityPercent(Number(purityPercent));
+    const normalizedNetWeight = Number(netWeightGrams);
+    let resolvedStockRate = stockRatePerGram != null ? Number(stockRatePerGram) : null;
+
+    if (resolvedStockRate == null || resolvedStockRate <= 0) {
+      const rate = await prisma.rate.findUnique({ where: { metal } });
+      resolvedStockRate = rate?.pricePerGram ?? null;
+    }
+
+    if (resolvedStockRate == null || resolvedStockRate <= 0) {
+      return NextResponse.json({ error: "Metal rate is required to record stock cost" }, { status: 400 });
+    }
+
+    const stockMetalCost = calcStockMetalCost(normalizedNetWeight, normalizedPurity, resolvedStockRate);
+
     const item = await prisma.item.create({
       data: {
         itemCode: String(itemCode).trim(),
         name: String(name).trim(),
         type: String(type).trim(),
         metal,
-        purityPercent: Number(purityPercent),
+        purityPercent: normalizedPurity,
         grossWeightGrams: grossWeightGrams != null ? Number(grossWeightGrams) : null,
-        netWeightGrams: Number(netWeightGrams),
+        netWeightGrams: normalizedNetWeight,
+        stockRatePerGram: resolvedStockRate,
+        stockMetalCost,
         notes: notes ? String(notes).trim() : null,
         photoUrl: photoUrl ? String(photoUrl).trim() : null,
       },

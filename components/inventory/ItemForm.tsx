@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   calcPureWeight,
   calcMarketPrice,
+  calcStockMetalCost,
   GOLD_22K_PURITY,
   GOLD_PURITIES,
   GOLD_TYPES,
@@ -88,6 +89,9 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
   const marketPrice = liveRate != null && netWt > 0 && purity > 0
     ? calcMarketPrice(netWt, purity, liveRate)
     : null;
+  const stockMetalCost = liveRate != null && netWt > 0 && purity > 0
+    ? calcStockMetalCost(netWt, purity, liveRate)
+    : null;
 
   async function handlePhotoUpload(file: File) {
     setUploadingPhoto(true);
@@ -120,6 +124,8 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
       return toast.error("Purity is required");
     if (!form.netWeightGrams || parseFloat(form.netWeightGrams) <= 0)
       return toast.error("Net weight is required");
+    if (mode === "create" && (liveRate == null || liveRate <= 0))
+      return toast.error("Set the metal rate before adding to stock");
 
     setSaving(true);
     try {
@@ -131,6 +137,7 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
         purityPercent: parseFloat(form.purityPercent),
         grossWeightGrams: isGold && form.grossWeightGrams ? parseFloat(form.grossWeightGrams) : null,
         netWeightGrams: parseFloat(form.netWeightGrams),
+        ...(mode === "create" && liveRate != null ? { stockRatePerGram: liveRate } : {}),
         notes: form.notes.trim() || null,
         photoUrl: photoUrl.trim() || null,
       };
@@ -340,13 +347,23 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">Live Calculation</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-6 sm:grid-cols-2">
+          <CardContent className="grid gap-6 sm:grid-cols-3">
             <div>
               <p className="text-sm text-muted-foreground">Pure {isGold ? "Gold" : "Silver"} Weight</p>
               <p className="text-xl font-bold">{pureWt.toFixed(3)} g</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Market Value</p>
+              <p className="text-sm text-muted-foreground">Pure Meta Cost</p>
+              {stockMetalCost != null ? (
+                <p className={`text-xl font-bold ${isGold ? "text-amber-700" : "text-slate-600"}`}>
+                  {formatCurrency(stockMetalCost)}
+                </p>
+              ) : (
+                <p className="text-base text-muted-foreground mt-1">Set rate above</p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Current Market Value</p>
               {marketPrice != null ? (
                 <p className={`text-xl font-bold ${isGold ? "text-amber-700" : "text-slate-600"}`}>
                   {formatCurrency(marketPrice)}

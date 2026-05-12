@@ -21,6 +21,8 @@ model Item {
   purityPercent    Float
   grossWeightGrams Float?
   netWeightGrams   Float
+  stockRatePerGram Float?
+  stockMetalCost   Float?
   notes            String?
   photoUrl         String?
   dateAdded        DateTime  @default(now())

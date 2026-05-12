@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizePurityPercent } from "@/lib/calculations";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const item = await prisma.item.findUnique({ where: { id } });
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(item);
+  return NextResponse.json({
+    ...item,
+    purityPercent: normalizePurityPercent(item.purityPercent),
+  });
 }
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -32,7 +36,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         ...(name !== undefined && { name: String(name).trim() }),
         ...(type !== undefined && { type: String(type).trim() }),
         ...(metal !== undefined && { metal }),
-        ...(purityPercent !== undefined && { purityPercent: Number(purityPercent) }),
+        ...(purityPercent !== undefined && {
+          purityPercent: normalizePurityPercent(Number(purityPercent)),
+        }),
         ...(grossWeightGrams !== undefined && {
           grossWeightGrams: grossWeightGrams !== null ? Number(grossWeightGrams) : null,
         }),
@@ -42,7 +48,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
 
-    return NextResponse.json(item);
+    return NextResponse.json({
+      ...item,
+      purityPercent: normalizePurityPercent(item.purityPercent),
+    });
   } catch (err: unknown) {
     if (
       typeof err === "object" &&

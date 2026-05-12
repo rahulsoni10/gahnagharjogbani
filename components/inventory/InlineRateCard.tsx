@@ -64,7 +64,7 @@ export function InlineRateCard({ metal, onRateChange }: InlineRateCardProps) {
         setCurrentRate(num);
         onRateChange(num);
         setEditing(false);
-        toast.success(`${label} rate updated to ₹${num.toLocaleString("en-IN")}/g`);
+        toast.success(`${label} rate updated to ₹${num.toLocaleString("en-IN")}/g for stock and sales`);
       } else {
         toast.error("Failed to update rate");
       }
@@ -140,6 +140,9 @@ export function InlineRateCard({ metal, onRateChange }: InlineRateCardProps) {
             </div>
           )}
         </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Use the pencil to update the current rate for stock and sales.
+        </p>
       </CardContent>
     </Card>
   );

@@ -96,7 +96,7 @@ export default async function DashboardPage() {
       iconWrap: "bg-slate-200 text-slate-700",
     },
     {
-      title: "Stock Market Value",
+      title: "Total Pure Metal Cost",
       value: data.totalMarketValue != null ? formatCurrency(data.totalMarketValue) : "—",
       sub: data.totalMarketValue != null ? "Based on current rates" : "Set rates to see value",
       icon: TrendingUp,

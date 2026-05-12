@@ -137,7 +137,7 @@ In Vercel → your project → **Domains** → add your own domain for free.
 Rates are set on the **Rates** page. Enter the price of **pure metal** per gram (24K gold / 999 silver).
 
 **Example:** 10g 22K gold ring @ ₹7,500/g per pure gram  
-→ Pure weight = 10 × 0.916 = 9.16g  
+→ Pure weight = 10 × 0.9166 = 9.166g  
 → Market price = 9.16 × ₹7,500 = ₹68,700
 
 ---

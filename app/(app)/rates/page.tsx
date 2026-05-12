@@ -178,7 +178,7 @@ export default function RatesPage() {
     <div className="space-y-6">
       <PageHeader
         title="Metal Rates"
-        description="Set daily gold and silver prices. These are used to calculate market value of all items."
+        description="Set daily gold and silver prices. These rates apply to stock value and sale pricing."
       />
 
       {loading ? (

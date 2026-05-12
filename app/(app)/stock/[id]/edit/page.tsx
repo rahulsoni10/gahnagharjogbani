@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { GOLD_22K_PURITY } from "@/lib/calculations";
+import { normalizePurityPercent } from "@/lib/calculations";
 import { ItemForm } from "@/components/inventory/ItemForm";
 import { FormPageShell } from "@/components/inventory/FormPageShell";
 
@@ -16,7 +16,7 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
     name: item.name,
     type: item.type,
     metal: item.metal,
-    purityPercent: String(Math.abs(item.purityPercent - 91.66) < 0.01 ? GOLD_22K_PURITY : item.purityPercent),
+    purityPercent: String(normalizePurityPercent(item.purityPercent)),
     grossWeightGrams: item.grossWeightGrams != null ? String(item.grossWeightGrams) : "",
     netWeightGrams: String(item.netWeightGrams),
     notes: item.notes ?? "",

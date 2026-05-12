@@ -44,10 +44,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  calcPureWeight,
   calcMarketPrice,
   formatCurrency,
   goldPurityLabel,
+  resolveStockMetalCost,
   GOLD_TYPES,
   SILVER_TYPES,
 } from "@/lib/calculations";
@@ -61,6 +61,8 @@ interface Item {
   purityPercent: number;
   grossWeightGrams: number | null;
   netWeightGrams: number;
+  stockMetalCost: number | null;
+  stockRatePerGram: number | null;
   notes: string | null;
   dateAdded: string;
   soldAt: string | null;
@@ -241,10 +243,10 @@ export function StockTable() {
                 <TableHead>Metal</TableHead>
                 <TableHead className="text-right">
                   <button onClick={() => handleSort("netWeightGrams")} className="flex items-center gap-1 ml-auto hover:text-foreground transition-colors">
-                    Net Wt <SortIcon col="netWeightGrams" sortKey={sortKey} sortDir={sortDir} />
+                    Net Weight <SortIcon col="netWeightGrams" sortKey={sortKey} sortDir={sortDir} />
                   </button>
                 </TableHead>
-                <TableHead className="text-right">Pure Wt</TableHead>
+                <TableHead className="text-right">Stock Cost</TableHead>
                 <TableHead className="text-right">Market Value</TableHead>
                 <TableHead>
                   <button onClick={() => handleSort("dateAdded")} className="flex items-center gap-1 hover:text-foreground transition-colors">
@@ -257,7 +259,7 @@ export function StockTable() {
             <TableBody>
               {filtered.map((item) => {
                 const rate = getRate(item.metal);
-                const pureWt = calcPureWeight(item.netWeightGrams, item.purityPercent);
+                const stockCost = resolveStockMetalCost(item);
                 const marketPrice = rate != null
                   ? calcMarketPrice(item.netWeightGrams, item.purityPercent, rate)
                   : null;
@@ -279,7 +281,9 @@ export function StockTable() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right text-sm">{item.netWeightGrams.toFixed(3)}g</TableCell>
-                    <TableCell className="text-right text-sm">{pureWt.toFixed(3)}g</TableCell>
+                    <TableCell className="text-right text-sm font-medium">
+                      {stockCost != null ? formatCurrency(stockCost) : "—"}
+                    </TableCell>
                     <TableCell className="text-right text-sm font-medium">
                       {marketPrice != null ? (
                         <span className={isGold ? "text-amber-700" : "text-slate-600"}>

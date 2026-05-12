@@ -26,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { calcPureWeight, calcTotalItemCost, formatCurrency, goldPurityLabel } from "@/lib/calculations";
+import { calcSaleProfit, formatCurrency, goldPurityLabel, resolveStockMetalCost } from "@/lib/calculations";
 
 interface SaleItem {
   itemCode: string;
@@ -35,6 +35,8 @@ interface SaleItem {
   metal: "GOLD" | "SILVER";
   purityPercent: number;
   netWeightGrams: number;
+  stockMetalCost: number | null;
+  stockRatePerGram: number | null;
   photoUrl: string | null;
 }
 
@@ -106,16 +108,8 @@ export default function SalesPage() {
 
   const totalRevenue = filtered.reduce((sum, s) => sum + s.sellingPrice, 0);
   const totalCost = filtered.reduce((sum, s) => {
-    return (
-      sum +
-      calcTotalItemCost(
-        s.item.netWeightGrams,
-        s.item.purityPercent,
-        s.ratePerGram,
-        s.makingChargePct,
-        s.makingChargeAmount
-      )
-    );
+    const cost = resolveStockMetalCost(s.item);
+    return sum + (cost ?? 0);
   }, 0);
   const totalProfit = totalRevenue - totalCost;
 
@@ -199,8 +193,8 @@ export default function SalesPage() {
                 <TableRow className="bg-muted/50">
                   <TableHead>Item</TableHead>
                   <TableHead>Type / Metal</TableHead>
-                  <TableHead className="text-right">Pure Wt</TableHead>
-                  <TableHead className="text-right">Rate@Sale</TableHead>
+                  <TableHead className="text-right">Net Weight</TableHead>
+                  <TableHead className="text-right">Fine Rate@Sale</TableHead>
                   <TableHead className="text-right">Cost</TableHead>
                   <TableHead className="text-right">
                     <button onClick={() => handleSort("sellingPrice")} className="flex items-center gap-1 ml-auto hover:text-foreground transition-colors">
@@ -219,15 +213,8 @@ export default function SalesPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((sale) => {
-                  const pureWt = calcPureWeight(sale.item.netWeightGrams, sale.item.purityPercent);
-                  const cost = calcTotalItemCost(
-                    sale.item.netWeightGrams,
-                    sale.item.purityPercent,
-                    sale.ratePerGram,
-                    sale.makingChargePct,
-                    sale.makingChargeAmount
-                  );
-                  const profit = sale.sellingPrice - cost;
+                  const cost = resolveStockMetalCost(sale.item);
+                  const profit = cost != null ? calcSaleProfit(sale.sellingPrice, cost) : null;
                   const isGold = sale.item.metal === "GOLD";
                   return (
                     <TableRow key={sale.id} className="hover:bg-muted/30">
@@ -248,16 +235,18 @@ export default function SalesPage() {
                           </Badge>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">{pureWt.toFixed(3)}g</TableCell>
+                      <TableCell className="text-right">{sale.item.netWeightGrams.toFixed(3)}g</TableCell>
                       <TableCell className="text-right text-muted-foreground">
                         ₹{sale.ratePerGram.toLocaleString("en-IN")}/g
                       </TableCell>
-                      <TableCell className="text-right font-medium">{formatCurrency(cost)}</TableCell>
+                      <TableCell className="text-right font-medium">
+                        {cost != null ? formatCurrency(cost) : "—"}
+                      </TableCell>
                       <TableCell className="text-right font-bold text-emerald-700">
                         {formatCurrency(sale.sellingPrice)}
                       </TableCell>
-                      <TableCell className={`text-right font-semibold ${profit >= 0 ? "text-emerald-700" : "text-destructive"}`}>
-                        {formatCurrency(profit)}
+                      <TableCell className={`text-right font-semibold ${profit == null ? "text-muted-foreground" : profit >= 0 ? "text-emerald-700" : "text-destructive"}`}>
+                        {profit != null ? formatCurrency(profit) : "—"}
                       </TableCell>
                       <TableCell>
                         {sale.customerName ? (
@@ -294,15 +283,8 @@ export default function SalesPage() {
 
           <div className="grid gap-4 lg:hidden">
             {filtered.map((sale) => {
-              const pureWt = calcPureWeight(sale.item.netWeightGrams, sale.item.purityPercent);
-              const cost = calcTotalItemCost(
-                sale.item.netWeightGrams,
-                sale.item.purityPercent,
-                sale.ratePerGram,
-                sale.makingChargePct,
-                sale.makingChargeAmount
-              );
-              const profit = sale.sellingPrice - cost;
+              const cost = resolveStockMetalCost(sale.item);
+              const profit = cost != null ? calcSaleProfit(sale.sellingPrice, cost) : null;
               const isGold = sale.item.metal === "GOLD";
 
               return (
@@ -335,8 +317,8 @@ export default function SalesPage() {
 
                   <div className="grid grid-cols-2 gap-3 text-sm sm:text-base">
                     <div>
-                      <p className="text-muted-foreground">Pure weight</p>
-                      <p className="font-medium">{pureWt.toFixed(3)} g</p>
+                      <p className="text-muted-foreground">Net weight</p>
+                      <p className="font-medium">{sale.item.netWeightGrams.toFixed(3)} g</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Rate at sale</p>
@@ -344,7 +326,7 @@ export default function SalesPage() {
                     </div>
                     <div>
                       <p className="text-muted-foreground">Cost</p>
-                      <p className="font-medium">{formatCurrency(cost)}</p>
+                      <p className="font-medium">{cost != null ? formatCurrency(cost) : "—"}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Sold for</p>
@@ -352,8 +334,8 @@ export default function SalesPage() {
                     </div>
                     <div>
                       <p className="text-muted-foreground">Profit</p>
-                      <p className={`font-semibold ${profit >= 0 ? "text-emerald-700" : "text-destructive"}`}>
-                        {formatCurrency(profit)}
+                      <p className={`font-semibold ${profit == null ? "text-muted-foreground" : profit >= 0 ? "text-emerald-700" : "text-destructive"}`}>
+                        {profit != null ? formatCurrency(profit) : "—"}
                       </p>
                     </div>
                     <div>

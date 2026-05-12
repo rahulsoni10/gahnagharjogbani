@@ -1,5 +1,14 @@
+export const GOLD_22K_PURITY = 91.66;
+
+export function normalizePurityPercent(purityPercent: number): number {
+  if (Math.abs(purityPercent - GOLD_22K_PURITY) < 0.01) return GOLD_22K_PURITY;
+  if (Math.abs(purityPercent - 91.6) < 0.01) return GOLD_22K_PURITY;
+  return purityPercent;
+}
+
 export function calcPureWeight(netWeightGrams: number, purityPercent: number): number {
-  return (netWeightGrams * purityPercent) / 100;
+  const purity = normalizePurityPercent(purityPercent);
+  return (netWeightGrams * purity) / 100;
 }
 
 export function calcMarketPrice(
@@ -22,8 +31,6 @@ export function formatCurrency(amount: number): string {
     maximumFractionDigits: 0,
   }).format(amount);
 }
-
-export const GOLD_22K_PURITY = 91.66;
 
 export const GOLD_PURITIES = [
   { label: "24K (100%)", value: 100 },
@@ -51,6 +58,33 @@ export function calcTotalItemCost(
 ): number {
   const marketPrice = calcMarketPrice(netWeightGrams, purityPercent, ratePerGram);
   return marketPrice + calcMakingCharge(marketPrice, makingChargePct, makingChargeAmount);
+}
+
+export function calcStockMetalCost(
+  netWeightGrams: number,
+  purityPercent: number,
+  stockRatePerGram: number
+): number {
+  return calcMarketPrice(netWeightGrams, purityPercent, stockRatePerGram);
+}
+
+export function calcSaleProfit(sellingPrice: number, stockMetalCost: number): number {
+  return sellingPrice - stockMetalCost;
+}
+
+export interface StockCostItem {
+  netWeightGrams: number;
+  purityPercent: number;
+  stockMetalCost?: number | null;
+  stockRatePerGram?: number | null;
+}
+
+export function resolveStockMetalCost(item: StockCostItem): number | null {
+  if (item.stockMetalCost != null) return item.stockMetalCost;
+  if (item.stockRatePerGram != null) {
+    return calcStockMetalCost(item.netWeightGrams, item.purityPercent, item.stockRatePerGram);
+  }
+  return null;
 }
 
 export const GOLD_TYPES = [
@@ -97,9 +131,10 @@ export function getTypesForMetal(metal: "GOLD" | "SILVER") {
 }
 
 export function goldPurityLabel(purity: number): string {
-  if (purity === 100) return "24K";
-  if (Math.abs(purity - GOLD_22K_PURITY) < 0.01 || Math.abs(purity - 91.6) < 0.01) return "22K";
-  if (purity === 75) return "18K";
-  if (purity === 60) return "14.4K";
-  return `${purity}%`;
+  const normalized = normalizePurityPercent(purity);
+  if (normalized === 100) return "24K";
+  if (Math.abs(normalized - GOLD_22K_PURITY) < 0.01) return "22K";
+  if (normalized === 75) return "18K";
+  if (normalized === 60) return "14.4K";
+  return `${normalized}%`;
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizePurityPercent } from "@/lib/calculations";
 
 export async function GET() {
   const sales = await prisma.sale.findMany({
@@ -12,13 +13,23 @@ export async function GET() {
           metal: true,
           purityPercent: true,
           netWeightGrams: true,
+          stockMetalCost: true,
+          stockRatePerGram: true,
           photoUrl: true,
         },
       },
     },
     orderBy: { soldAt: "desc" },
   });
-  return NextResponse.json(sales);
+  return NextResponse.json(
+    sales.map((sale) => ({
+      ...sale,
+      item: {
+        ...sale.item,
+        purityPercent: normalizePurityPercent(sale.item.purityPercent),
+      },
+    }))
+  );
 }
 
 export async function POST(request: NextRequest) {
