@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { LinkButton } from "@/components/ui/link-button";
 import { InlineRateCard } from "@/components/inventory/InlineRateCard";
-import { calcPureWeight, calcMarketPrice, formatCurrency, goldPurityLabel } from "@/lib/calculations";
+import { calcPureWeight, calcMarketPrice, calcMakingCharge, calcTotalItemCost, formatCurrency, goldPurityLabel } from "@/lib/calculations";
 
 interface Item {
   id: string;
@@ -24,7 +24,6 @@ interface Item {
   purityPercent: number;
   netWeightGrams: number;
   grossWeightGrams: number | null;
-  makingChargePct: number | null;
   notes: string | null;
   photoUrl: string | null;
   soldAt: string | null;
@@ -40,6 +39,8 @@ function NewSaleForm() {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [liveRate, setLiveRate] = useState<number | null>(null);
   const [sellingPrice, setSellingPrice] = useState("");
+  const [makingChargePct, setMakingChargePct] = useState("0");
+  const [makingChargeAmount, setMakingChargeAmount] = useState("0");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [notes, setNotes] = useState("");
@@ -66,15 +67,17 @@ function NewSaleForm() {
   // Auto-fill selling price when item or rate changes
   useEffect(() => {
     if (selectedItem && liveRate != null) {
-      const price = calcMarketPrice(
+      const price = calcTotalItemCost(
         selectedItem.netWeightGrams,
         selectedItem.purityPercent,
-        liveRate
+        liveRate,
+        parseFloat(makingChargePct) || 0,
+        parseFloat(makingChargeAmount) || 0
       );
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSellingPrice(price.toFixed(0));
     }
-  }, [selectedItem, liveRate]);
+  }, [selectedItem, liveRate, makingChargePct, makingChargeAmount]);
 
   const filteredItems = searchQuery.length > 0
     ? items.filter((i) =>
@@ -87,6 +90,8 @@ function NewSaleForm() {
     setSelectedItem(item);
     setSearchQuery("");
     setShowDropdown(false);
+    setMakingChargePct("0");
+    setMakingChargeAmount("0");
   }
 
   const pureWt = selectedItem
@@ -95,6 +100,20 @@ function NewSaleForm() {
 
   const marketPrice = selectedItem && liveRate != null
     ? calcMarketPrice(selectedItem.netWeightGrams, selectedItem.purityPercent, liveRate)
+    : null;
+
+  const makingCharge = marketPrice != null
+    ? calcMakingCharge(marketPrice, parseFloat(makingChargePct) || 0, parseFloat(makingChargeAmount) || 0)
+    : null;
+
+  const totalCost = selectedItem && liveRate != null
+    ? calcTotalItemCost(
+        selectedItem.netWeightGrams,
+        selectedItem.purityPercent,
+        liveRate,
+        parseFloat(makingChargePct) || 0,
+        parseFloat(makingChargeAmount) || 0
+      )
     : null;
 
   const isGold = selectedItem?.metal === "GOLD";
@@ -114,6 +133,8 @@ function NewSaleForm() {
           itemId: selectedItem.id,
           sellingPrice: parseFloat(sellingPrice),
           ratePerGram: liveRate,
+          makingChargePct: parseFloat(makingChargePct) || 0,
+          makingChargeAmount: parseFloat(makingChargeAmount) || 0,
           customerName: customerName.trim() || null,
           customerPhone: customerPhone.trim() || null,
           notes: notes.trim() || null,
@@ -134,7 +155,7 @@ function NewSaleForm() {
   }
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-3">
         <LinkButton variant="ghost" size="sm" href="/sales">
           <ArrowLeft className="h-4 w-4 mr-1" />
@@ -143,8 +164,8 @@ function NewSaleForm() {
       </div>
 
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Record Sale</h1>
-        <p className="text-muted-foreground mt-1">Select a stock item and record the sale details.</p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Record Sale</h1>
+        <p className="text-muted-foreground mt-2 text-base sm:text-lg">Select a stock item and record the sale details.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -255,17 +276,31 @@ function NewSaleForm() {
         )}
 
         {/* Market price preview */}
-        {selectedItem && marketPrice != null && (
+        {selectedItem && totalCost != null && (
           <Card className={`border-2 ${isGold ? "border-amber-200 bg-amber-50/40" : "border-slate-200 bg-slate-50/40"}`}>
-            <CardContent className="py-3 flex gap-8 flex-wrap">
+            <CardContent className="py-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <p className="text-xs text-muted-foreground">Pure Weight</p>
-                <p className="text-lg font-bold">{pureWt?.toFixed(3)} g</p>
+                <p className="text-sm text-muted-foreground">Pure Weight</p>
+                <p className="text-xl font-bold">{pureWt?.toFixed(3)} g</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Market Price</p>
-                <p className={`text-lg font-bold ${isGold ? "text-amber-700" : "text-slate-600"}`}>
-                  {formatCurrency(marketPrice)}
+                <p className="text-sm text-muted-foreground">Metal Value</p>
+                <p className={`text-xl font-bold ${isGold ? "text-amber-700" : "text-slate-600"}`}>
+                  {marketPrice != null ? formatCurrency(marketPrice) : "—"}
+                </p>
+              </div>
+              {isGold && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Making Charge</p>
+                  <p className="text-xl font-bold">
+                    {makingCharge != null ? formatCurrency(makingCharge) : "—"}
+                  </p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-muted-foreground">Total Cost</p>
+                <p className={`text-xl font-bold ${isGold ? "text-amber-800" : "text-slate-700"}`}>
+                  {formatCurrency(totalCost)}
                 </p>
               </div>
             </CardContent>
@@ -279,8 +314,42 @@ function NewSaleForm() {
               <CardTitle className="text-lg">Sale Details</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="makingChargePct" className="text-base font-semibold">Making Charge (%)</Label>
+                <div className="relative">
+                  <Input
+                    id="makingChargePct"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={makingChargePct}
+                    onChange={(e) => setMakingChargePct(e.target.value)}
+                    className="pr-8 h-11 text-base"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-base">%</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="makingChargeAmount" className="text-base font-semibold">Making Charge (₹)</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₹</span>
+                  <Input
+                    id="makingChargeAmount"
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="0"
+                    value={makingChargeAmount}
+                    onChange={(e) => setMakingChargeAmount(e.target.value)}
+                    className="pl-7 h-11 text-base"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="sellingPrice" className="text-sm font-semibold">
+                <Label htmlFor="sellingPrice" className="text-base font-semibold">
                   Selling Price (₹) *
                 </Label>
                 <div className="relative">
@@ -296,13 +365,13 @@ function NewSaleForm() {
                     className="pl-7 h-10 text-base font-semibold"
                   />
                 </div>
-                {marketPrice != null && sellingPrice && (
-                  <p className="text-xs text-muted-foreground">
-                    {parseFloat(sellingPrice) > marketPrice
-                      ? `+${formatCurrency(parseFloat(sellingPrice) - marketPrice)} above market`
-                      : parseFloat(sellingPrice) < marketPrice
-                        ? `${formatCurrency(marketPrice - parseFloat(sellingPrice))} below market`
-                        : "At market price"}
+                {totalCost != null && sellingPrice && (
+                  <p className="text-sm text-muted-foreground">
+                    {parseFloat(sellingPrice) > totalCost
+                      ? `+${formatCurrency(parseFloat(sellingPrice) - totalCost)} above cost`
+                      : parseFloat(sellingPrice) < totalCost
+                        ? `${formatCurrency(totalCost - parseFloat(sellingPrice))} below cost`
+                        : "At cost"}
                   </p>
                 )}
               </div>

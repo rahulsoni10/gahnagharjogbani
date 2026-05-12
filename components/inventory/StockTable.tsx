@@ -61,7 +61,6 @@ interface Item {
   purityPercent: number;
   grossWeightGrams: number | null;
   netWeightGrams: number;
-  makingChargePct: number | null;
   notes: string | null;
   dateAdded: string;
   soldAt: string | null;

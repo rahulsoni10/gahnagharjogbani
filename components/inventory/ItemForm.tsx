@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   calcPureWeight,
   calcMarketPrice,
+  GOLD_22K_PURITY,
   GOLD_PURITIES,
   GOLD_TYPES,
   SILVER_TYPES,
@@ -37,7 +38,6 @@ interface ItemFormData {
   purityPercent: string;
   grossWeightGrams: string;
   netWeightGrams: string;
-  makingChargePct: string;
   notes: string;
 }
 
@@ -51,10 +51,9 @@ const EMPTY_FORM: ItemFormData = {
   name: "",
   metal: "GOLD",
   type: "",
-  purityPercent: "91.6",
+  purityPercent: String(GOLD_22K_PURITY),
   grossWeightGrams: "",
   netWeightGrams: "",
-  makingChargePct: "",
   notes: "",
 };
 
@@ -71,9 +70,8 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
     setForm((prev) => {
       const next = { ...prev, [field]: value };
       if (field === "metal") {
-        next.purityPercent = value === "GOLD" ? "91.6" : "";
+        next.purityPercent = value === "GOLD" ? String(GOLD_22K_PURITY) : "";
         next.grossWeightGrams = "";
-        next.makingChargePct = "";
         next.type = "";
       }
       return next;
@@ -133,7 +131,6 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
         purityPercent: parseFloat(form.purityPercent),
         grossWeightGrams: isGold && form.grossWeightGrams ? parseFloat(form.grossWeightGrams) : null,
         netWeightGrams: parseFloat(form.netWeightGrams),
-        makingChargePct: isGold && form.makingChargePct ? parseFloat(form.makingChargePct) : null,
         notes: form.notes.trim() || null,
         photoUrl: photoUrl.trim() || null,
       };
@@ -330,22 +327,6 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="makingCharge" className="text-sm font-semibold">Making Charge (%)</Label>
-                <div className="relative">
-                  <Input
-                    id="makingCharge"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="Optional"
-                    value={form.makingChargePct}
-                    onChange={(e) => set("makingChargePct", e.target.value)}
-                    className="pr-8 h-10"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
-                </div>
-              </div>
             </>
           )}
         </CardContent>
@@ -359,19 +340,19 @@ export function ItemForm({ initialData, mode }: ItemFormProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">Live Calculation</CardTitle>
           </CardHeader>
-          <CardContent className="flex gap-8 flex-wrap">
+          <CardContent className="grid gap-6 sm:grid-cols-2">
             <div>
-              <p className="text-xs text-muted-foreground">Pure {isGold ? "Gold" : "Silver"} Weight</p>
-              <p className="text-lg font-bold">{pureWt.toFixed(3)} g</p>
+              <p className="text-sm text-muted-foreground">Pure {isGold ? "Gold" : "Silver"} Weight</p>
+              <p className="text-xl font-bold">{pureWt.toFixed(3)} g</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Market Price</p>
+              <p className="text-sm text-muted-foreground">Market Value</p>
               {marketPrice != null ? (
-                <p className={`text-lg font-bold ${isGold ? "text-amber-700" : "text-slate-600"}`}>
+                <p className={`text-xl font-bold ${isGold ? "text-amber-700" : "text-slate-600"}`}>
                   {formatCurrency(marketPrice)}
                 </p>
               ) : (
-                <p className="text-sm text-muted-foreground mt-1">Set rate above</p>
+                <p className="text-base text-muted-foreground mt-1">Set rate above</p>
               )}
             </div>
           </CardContent>

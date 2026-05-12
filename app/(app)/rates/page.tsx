@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { GOLD_22K_PURITY } from "@/lib/calculations";
 
 interface Rate {
   id: string;
@@ -125,8 +126,8 @@ function RateCard({
 
         {rate && (
           <div className={`rounded-md p-2 text-xs ${isGold ? "bg-amber-50 text-amber-700" : "bg-slate-50 text-slate-700"}`}>
-            <strong>Example:</strong> 10g at {isGold ? "91.6% (22K)" : "92.5% purity"} →{" "}
-            ₹{(10 * (isGold ? 91.6 : 92.5) / 100 * rate.pricePerGram).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+            <strong>Example:</strong> 10g at {isGold ? "91.66% (22K)" : "92.5% purity"} →{" "}
+            ₹{(10 * (isGold ? GOLD_22K_PURITY : 92.5) / 100 * rate.pricePerGram).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
           </div>
         )}
       </CardContent>

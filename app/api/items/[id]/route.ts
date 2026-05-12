@@ -21,7 +21,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       purityPercent,
       grossWeightGrams,
       netWeightGrams,
-      makingChargePct,
       notes,
       photoUrl,
     } = body;
@@ -38,9 +37,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           grossWeightGrams: grossWeightGrams !== null ? Number(grossWeightGrams) : null,
         }),
         ...(netWeightGrams !== undefined && { netWeightGrams: Number(netWeightGrams) }),
-        ...(makingChargePct !== undefined && {
-          makingChargePct: makingChargePct !== null ? Number(makingChargePct) : null,
-        }),
         ...(notes !== undefined && { notes: notes ? String(notes).trim() : null }),
         ...(photoUrl !== undefined && { photoUrl: photoUrl ? String(photoUrl).trim() : null }),
       },

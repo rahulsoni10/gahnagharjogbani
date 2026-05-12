@@ -24,7 +24,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { itemId, sellingPrice, ratePerGram, customerName, customerPhone, notes } = body;
+    const { itemId, sellingPrice, ratePerGram, makingChargePct, makingChargeAmount, customerName, customerPhone, notes } = body;
 
     if (!itemId || sellingPrice == null || ratePerGram == null) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
           itemId,
           sellingPrice: Number(sellingPrice),
           ratePerGram: Number(ratePerGram),
+          makingChargePct: makingChargePct != null ? Number(makingChargePct) : 0,
+          makingChargeAmount: makingChargeAmount != null ? Number(makingChargeAmount) : 0,
           customerName: customerName ? String(customerName).trim() : null,
           customerPhone: customerPhone ? String(customerPhone).trim() : null,
           notes: notes ? String(notes).trim() : null,

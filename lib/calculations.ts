@@ -23,12 +23,35 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+export const GOLD_22K_PURITY = 91.66;
+
 export const GOLD_PURITIES = [
   { label: "24K (100%)", value: 100 },
-  { label: "22K (91.6%)", value: 91.6 },
+  { label: "22K (91.66%)", value: GOLD_22K_PURITY },
   { label: "18K (75%)", value: 75 },
   { label: "14.4K (60%)", value: 60 },
 ] as const;
+
+export function calcMakingCharge(
+  marketPrice: number,
+  makingChargePct?: number | null,
+  makingChargeAmount?: number | null
+): number {
+  const pct = makingChargePct ?? 0;
+  const amount = makingChargeAmount ?? 0;
+  return marketPrice * (pct / 100) + amount;
+}
+
+export function calcTotalItemCost(
+  netWeightGrams: number,
+  purityPercent: number,
+  ratePerGram: number,
+  makingChargePct?: number | null,
+  makingChargeAmount?: number | null
+): number {
+  const marketPrice = calcMarketPrice(netWeightGrams, purityPercent, ratePerGram);
+  return marketPrice + calcMakingCharge(marketPrice, makingChargePct, makingChargeAmount);
+}
 
 export const GOLD_TYPES = [
   "Ring",
@@ -75,7 +98,7 @@ export function getTypesForMetal(metal: "GOLD" | "SILVER") {
 
 export function goldPurityLabel(purity: number): string {
   if (purity === 100) return "24K";
-  if (purity === 91.6) return "22K";
+  if (Math.abs(purity - GOLD_22K_PURITY) < 0.01 || Math.abs(purity - 91.6) < 0.01) return "22K";
   if (purity === 75) return "18K";
   if (purity === 60) return "14.4K";
   return `${purity}%`;

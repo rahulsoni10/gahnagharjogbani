@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { calcPureWeight, calcMarketPrice, formatCurrency } from "@/lib/calculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Package, TrendingUp, Gem, Weight, ShoppingBag, IndianRupee } from "lucide-react";
+import { Package, TrendingUp, Gem, Weight, ShoppingBag, IndianRupee, Plus } from "lucide-react";
 import { LinkButton } from "@/components/ui/link-button";
 
 async function getDashboardData() {
@@ -75,138 +75,163 @@ export default async function DashboardPage() {
       value: String(data.totalItems),
       sub: `${data.goldCount} gold · ${data.silverCount} silver`,
       icon: Package,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
+      accent: "border-l-blue-500",
+      iconWrap: "bg-blue-100 text-blue-700",
     },
     {
       title: "Pure Gold in Stock",
       value: `${data.totalGoldPureWeight.toFixed(3)} g`,
       sub: data.goldRate ? `Rate: ₹${data.goldRate.toLocaleString("en-IN")}/g` : "Set rate on Rates page",
       icon: Gem,
-      color: "text-amber-600",
-      bg: "bg-amber-50",
+      accent: "border-l-amber-500",
+      iconWrap: "bg-amber-100 text-amber-700",
     },
     {
       title: "Pure Silver in Stock",
       value: `${data.totalSilverPureWeight.toFixed(3)} g`,
       sub: data.silverRate ? `Rate: ₹${data.silverRate.toLocaleString("en-IN")}/g` : "Set rate on Rates page",
       icon: Weight,
-      color: "text-slate-600",
-      bg: "bg-slate-100",
+      accent: "border-l-slate-500",
+      iconWrap: "bg-slate-200 text-slate-700",
     },
     {
       title: "Stock Market Value",
       value: data.totalMarketValue != null ? formatCurrency(data.totalMarketValue) : "—",
       sub: data.totalMarketValue != null ? "Based on current rates" : "Set rates to see value",
       icon: TrendingUp,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
+      accent: "border-l-emerald-500",
+      iconWrap: "bg-emerald-100 text-emerald-700",
     },
     {
       title: "Sales This Month",
       value: String(data.monthlySalesCount),
       sub: data.monthlySalesCount > 0 ? `Revenue: ${formatCurrency(data.monthlyRevenue)}` : "No sales this month",
       icon: ShoppingBag,
-      color: "text-violet-600",
-      bg: "bg-violet-50",
+      accent: "border-l-violet-500",
+      iconWrap: "bg-violet-100 text-violet-700",
     },
     {
       title: "Monthly Revenue",
       value: formatCurrency(data.monthlyRevenue),
       sub: "This calendar month",
       icon: IndianRupee,
-      color: "text-rose-600",
-      bg: "bg-rose-50",
+      accent: "border-l-rose-500",
+      iconWrap: "bg-rose-100 text-rose-700",
     },
   ];
 
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Overview of your GehnaGhar inventory.</p>
+      <section className="rounded-2xl border bg-card/90 p-6 sm:p-8 shadow-sm">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700">GehnaGhar</p>
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Dashboard</h1>
+            <p className="max-w-2xl text-base sm:text-lg text-muted-foreground">
+              A quick read on stock weight, live rates, and how sales are tracking this month.
+            </p>
+          </div>
+          <LinkButton href="/stock/new" className="h-11 w-full sm:w-auto text-base bg-amber-600 hover:bg-amber-700 text-white">
+            <Plus className="h-5 w-5 mr-2" />
+            Add Item
+          </LinkButton>
         </div>
-        <LinkButton href="/stock/new">+ Add Item</LinkButton>
-      </div>
+      </section>
 
-      {/* Stat Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {statCards.map(({ title, value, sub, icon: Icon, color, bg }) => (
-          <Card key={title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-              <div className={`p-2 rounded-full ${bg}`}>
-                <Icon className={`h-4 w-4 ${color}`} />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold tracking-tight">{value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{sub}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-semibold">Inventory snapshot</h2>
+          <p className="text-base text-muted-foreground mt-1">Stock counts and metal value at today&apos;s rates.</p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {statCards.map(({ title, value, sub, icon: Icon, accent, iconWrap }) => (
+            <Card key={title} className={`border-l-4 ${accent} shadow-sm`}>
+              <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3">
+                <CardTitle className="text-base font-semibold text-foreground">{title}</CardTitle>
+                <div className={`rounded-xl p-2.5 ${iconWrap}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-3xl font-bold tracking-tight">{value}</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">{sub}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
 
-      {/* Current Rates row */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        {[
-          { metal: "Gold", rate: data.goldRate, updated: data.goldRateUpdated },
-          { metal: "Silver", rate: data.silverRate, updated: data.silverRateUpdated },
-        ].map(({ metal, rate, updated }) => (
-          <Card key={metal}>
-            <CardContent className="pt-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{metal} Rate (per gram)</p>
-                {rate != null ? (
-                  <>
-                    <p className="text-xl font-bold">₹{rate.toLocaleString("en-IN")}</p>
-                    {updated && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Updated {new Date(updated).toLocaleString("en-IN")}
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground mt-1">Not set</p>
-                )}
-              </div>
-              <LinkButton variant="outline" size="sm" href="/rates">Update Rate</LinkButton>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-semibold">Live rates</h2>
+          <p className="text-base text-muted-foreground mt-1">Pure metal prices used for market value calculations.</p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {[
+            { metal: "Gold", rate: data.goldRate, updated: data.goldRateUpdated, tone: "border-amber-200 bg-amber-50/70" },
+            { metal: "Silver", rate: data.silverRate, updated: data.silverRateUpdated, tone: "border-slate-200 bg-slate-50/80" },
+          ].map(({ metal, rate, updated, tone }) => (
+            <Card key={metal} className={`${tone} shadow-sm`}>
+              <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1">
+                  <p className="text-base font-medium text-muted-foreground">{metal} rate per gram</p>
+                  {rate != null ? (
+                    <>
+                      <p className="text-3xl font-bold">₹{rate.toLocaleString("en-IN")}</p>
+                      {updated && (
+                        <p className="text-sm text-muted-foreground">
+                          Updated {new Date(updated).toLocaleString("en-IN")}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-base text-muted-foreground">Not set yet</p>
+                  )}
+                </div>
+                <LinkButton variant="outline" size="lg" href="/rates" className="w-full sm:w-auto h-11 text-base">
+                  Update Rate
+                </LinkButton>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
 
-      {/* Recent Sales */}
       {data.recentSales.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Recent Sales</CardTitle>
-              <LinkButton variant="ghost" size="sm" href="/sales">View All</LinkButton>
+        <section className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-semibold">Recent sales</h2>
+              <p className="text-base text-muted-foreground mt-1">Latest transactions across gold and silver.</p>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+            <LinkButton variant="outline" size="lg" href="/sales" className="w-full sm:w-auto h-11 text-base">
+              View All
+            </LinkButton>
+          </div>
+          <Card className="shadow-sm">
+            <CardContent className="divide-y p-0">
               {data.recentSales.map((sale) => (
-                <div key={sale.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                  <div>
-                    <p className="font-medium text-sm">{sale.item.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                <div
+                  key={sale.id}
+                  className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="space-y-1">
+                    <p className="text-lg font-semibold">{sale.item.name}</p>
+                    <p className="text-sm text-muted-foreground">
                       {sale.item.itemCode} · {sale.item.type} · {new Date(sale.soldAt).toLocaleDateString("en-IN")}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3 text-right">
-                    <div>
-                      <p className="text-sm font-bold text-emerald-700">{formatCurrency(sale.sellingPrice)}</p>
-                      <p className="text-xs text-muted-foreground">₹{sale.ratePerGram.toLocaleString("en-IN")}/g</p>
+                  <div className="flex items-center justify-between gap-4 sm:justify-end">
+                    <div className="text-left sm:text-right">
+                      <p className="text-xl font-bold text-emerald-700">{formatCurrency(sale.sellingPrice)}</p>
+                      <p className="text-sm text-muted-foreground">₹{sale.ratePerGram.toLocaleString("en-IN")}/g</p>
                     </div>
                     <Badge
                       variant="outline"
                       className={
                         sale.item.metal === "GOLD"
-                          ? "bg-amber-50 text-amber-700 border-amber-200"
-                          : "bg-slate-50 text-slate-700 border-slate-200"
+                          ? "bg-amber-50 text-amber-800 border-amber-200 text-sm px-3 py-1"
+                          : "bg-slate-50 text-slate-700 border-slate-200 text-sm px-3 py-1"
                       }
                     >
                       {sale.item.metal === "GOLD" ? "Gold" : "Silver"}
@@ -214,20 +239,23 @@ export default async function DashboardPage() {
                   </div>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </section>
       )}
 
       {data.totalItems === 0 && data.recentSales.length === 0 && (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12 gap-4 text-muted-foreground">
-            <Gem className="h-12 w-12 opacity-20" />
-            <div className="text-center">
-              <p className="font-medium text-base">No items in inventory yet</p>
-              <p className="text-sm mt-1">Start by adding your first jewellery item.</p>
+        <Card className="border-dashed shadow-sm">
+          <CardContent className="flex flex-col items-center justify-center gap-4 py-14 text-muted-foreground">
+            <Gem className="h-14 w-14 opacity-25" />
+            <div className="text-center space-y-2">
+              <p className="text-xl font-semibold text-foreground">No items in inventory yet</p>
+              <p className="text-base">Start by adding your first jewellery item to stock.</p>
             </div>
-            <LinkButton href="/stock/new">+ Add First Item</LinkButton>
+            <LinkButton href="/stock/new" className="h-11 text-base">
+              <Plus className="h-5 w-5 mr-2" />
+              Add First Item
+            </LinkButton>
           </CardContent>
         </Card>
       )}

@@ -21,7 +21,6 @@ model Item {
   purityPercent    Float
   grossWeightGrams Float?
   netWeightGrams   Float
-  makingChargePct  Float?
   notes            String?
   photoUrl         String?
   dateAdded        DateTime  @default(now())
@@ -43,6 +42,8 @@ model Sale {
   item          Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
   sellingPrice  Float
   ratePerGram   Float
+  makingChargePct     Float?
+  makingChargeAmount  Float?
   customerName  String?
   customerPhone String?
   notes         String?

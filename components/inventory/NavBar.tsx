@@ -28,7 +28,7 @@ export function NavBar() {
   return (
     <header className="sticky top-0 z-50 border-b bg-gradient-to-r from-amber-950/95 to-stone-900/95 backdrop-blur shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 sm:h-[4.5rem] items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="bg-amber-400/20 p-1.5 rounded-lg">
               <Gem className="h-5 w-5 text-amber-400" />
@@ -45,7 +45,7 @@ export function NavBar() {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium transition-colors",
                   pathname === href || (href !== "/" && pathname.startsWith(href))
                     ? "bg-amber-400/20 text-amber-300"
                     : "text-amber-100/60 hover:text-amber-100 hover:bg-amber-400/10"
@@ -75,7 +75,7 @@ export function NavBar() {
               key={href}
               href={href}
               className={cn(
-                "flex flex-1 items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition-colors",
+                "flex flex-1 items-center justify-center gap-1.5 py-2 rounded-md text-sm font-medium transition-colors",
                 pathname === href || (href !== "/" && pathname.startsWith(href))
                   ? "bg-amber-400/20 text-amber-300"
                   : "text-amber-100/60 hover:text-amber-100 hover:bg-amber-400/10"

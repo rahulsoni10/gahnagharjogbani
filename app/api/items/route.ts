@@ -41,7 +41,6 @@ export async function POST(request: NextRequest) {
       purityPercent,
       grossWeightGrams,
       netWeightGrams,
-      makingChargePct,
       notes,
       photoUrl,
     } = body;
@@ -59,7 +58,6 @@ export async function POST(request: NextRequest) {
         purityPercent: Number(purityPercent),
         grossWeightGrams: grossWeightGrams != null ? Number(grossWeightGrams) : null,
         netWeightGrams: Number(netWeightGrams),
-        makingChargePct: makingChargePct != null ? Number(makingChargePct) : null,
         notes: notes ? String(notes).trim() : null,
         photoUrl: photoUrl ? String(photoUrl).trim() : null,
       },
