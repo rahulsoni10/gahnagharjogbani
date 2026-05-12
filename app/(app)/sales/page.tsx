@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { ShoppingBag, Plus, Search, Trash2, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
+import { Receipt, Plus, Search, Trash2, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
+import { PageHeader } from "@/components/inventory/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -131,21 +132,16 @@ export default function SalesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Sales</h1>
-          <p className="text-muted-foreground mt-2 text-base sm:text-lg">
-            All recorded sales. Undo a sale to return the item to stock.
-          </p>
-        </div>
-        <LinkButton
-          href="/sales/new"
-          className="w-full sm:w-auto h-11 text-base bg-amber-600 hover:bg-amber-700 text-white"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Record Sale
-        </LinkButton>
-      </div>
+      <PageHeader
+        title="Sales"
+        description="All recorded sales. Undo a sale to return the item to stock."
+        action={
+          <LinkButton href="/sales/new" className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white">
+            <Plus className="h-4 w-4 mr-2" />
+            Record Sale
+          </LinkButton>
+        }
+      />
 
       {filtered.length > 0 && (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -184,7 +180,7 @@ export default function SalesPage() {
         <div className="flex items-center justify-center py-20 text-muted-foreground">Loading sales…</div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
-          <ShoppingBag className="h-12 w-12 opacity-20" />
+          <Receipt className="h-12 w-12 opacity-20" strokeWidth={1.75} />
           <p className="text-base">
             {sales.length === 0 ? "No sales recorded yet." : "No sales match your search."}
           </p>

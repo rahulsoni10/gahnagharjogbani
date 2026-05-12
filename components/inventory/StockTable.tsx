@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
-  Package,
+  Boxes,
   Plus,
   Search,
   Pencil,
@@ -12,7 +12,7 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
-  ShoppingBag,
+  Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LinkButton } from "@/components/ui/link-button";
@@ -211,7 +211,7 @@ export function StockTable() {
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
-          <Package className="h-12 w-12 opacity-20" />
+          <Boxes className="h-12 w-12 opacity-20" strokeWidth={1.75} />
           <p className="text-base">
             {items.length === 0 ? "No items in stock yet." : "No items match your filters."}
           </p>
@@ -299,7 +299,7 @@ export function StockTable() {
                           className="inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-amber-50 text-amber-600 hover:text-amber-700 transition-colors"
                           title="Record sale"
                         >
-                          <ShoppingBag className="h-3.5 w-3.5" />
+                          <Receipt className="h-3.5 w-3.5" strokeWidth={1.75} />
                         </Link>
                         <Link
                           href={`/stock/${item.id}/edit`}

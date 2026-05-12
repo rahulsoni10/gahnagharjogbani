@@ -1,4 +1,4 @@
-# Jewellery Inventory Management System
+# gahnagharjogbani
 
 A password-protected web app to manage your jewellery shop's gold and silver stock.
 

@@ -48,7 +48,7 @@ export default function LoginPage() {
               <Gem className="h-10 w-10 text-amber-400" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-amber-100 tracking-tight">GehnaGhar</h1>
+          <h1 className="text-3xl font-bold text-amber-100 tracking-tight">GahnaGhar</h1>
           <p className="text-amber-300/60 text-sm">Inventory Management</p>
         </div>
 

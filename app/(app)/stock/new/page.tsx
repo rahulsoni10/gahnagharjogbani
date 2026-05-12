@@ -1,25 +1,15 @@
 import { ItemForm } from "@/components/inventory/ItemForm";
-import { ArrowLeft } from "lucide-react";
-import { LinkButton } from "@/components/ui/link-button";
+import { FormPageShell } from "@/components/inventory/FormPageShell";
 
 export default function NewItemPage() {
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div className="flex items-center gap-3">
-        <LinkButton variant="ghost" size="sm" href="/stock">
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Back to Stock
-        </LinkButton>
-      </div>
-
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Add New Item</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Add a new jewellery item to your inventory.
-        </p>
-      </div>
-
+    <FormPageShell
+      backHref="/stock"
+      backLabel="Back to Stock"
+      title="Add New Item"
+      description="Add a new jewellery item to your inventory."
+    >
       <ItemForm mode="create" />
-    </div>
+    </FormPageShell>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Search, ArrowLeft, Package } from "lucide-react";
+import { Search, Boxes } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { LinkButton } from "@/components/ui/link-button";
+import { FormPageShell } from "@/components/inventory/FormPageShell";
 import { InlineRateCard } from "@/components/inventory/InlineRateCard";
 import { calcPureWeight, calcMarketPrice, calcMakingCharge, calcTotalItemCost, formatCurrency, goldPurityLabel } from "@/lib/calculations";
 
@@ -155,19 +155,13 @@ function NewSaleForm() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center gap-3">
-        <LinkButton variant="ghost" size="sm" href="/sales">
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Back to Sales
-        </LinkButton>
-      </div>
-
-      <div>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Record Sale</h1>
-        <p className="text-muted-foreground mt-2 text-base sm:text-lg">Select a stock item and record the sale details.</p>
-      </div>
-
+    <FormPageShell
+      backHref="/sales"
+      backLabel="Back to Sales"
+      title="Record Sale"
+      description="Select a stock item and record the sale details."
+      className="max-w-4xl"
+    >
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Item Picker — plain div (not Card) to avoid overflow-hidden clipping the dropdown */}
         <div className="rounded-xl border bg-card text-sm text-card-foreground ring-1 ring-foreground/10">
@@ -226,13 +220,13 @@ function NewSaleForm() {
                   <div className="absolute z-50 w-full bg-white border border-border rounded-lg shadow-xl mt-1 max-h-64 overflow-y-auto">
                     {items.length === 0 ? (
                       <div className="flex flex-col items-center py-6 gap-2 text-muted-foreground">
-                        <Package className="h-6 w-6 opacity-40" />
+                        <Boxes className="h-6 w-6 opacity-40" strokeWidth={1.75} />
                         <p className="text-sm font-medium">No stock items found</p>
                         <p className="text-xs text-center px-4">Add items in the Stock tab first.</p>
                       </div>
                     ) : filteredItems.length === 0 ? (
                       <div className="flex flex-col items-center py-6 gap-2 text-muted-foreground">
-                        <Package className="h-6 w-6 opacity-40" />
+                        <Boxes className="h-6 w-6 opacity-40" strokeWidth={1.75} />
                         <p className="text-sm">No items match &quot;{searchQuery}&quot;</p>
                       </div>
                     ) : (
@@ -430,7 +424,7 @@ function NewSaleForm() {
           </Button>
         </div>
       </form>
-    </div>
+    </FormPageShell>
   );
 }
 

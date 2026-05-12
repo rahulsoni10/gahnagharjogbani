@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { TrendingUp, Clock, Save } from "lucide-react";
+import { PageHeader } from "@/components/inventory/PageHeader";
+import { Coins, Clock, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,8 +56,9 @@ function RateCard({
           <div
             className={`p-2 rounded-full ${isGold ? "bg-amber-100" : "bg-slate-100"}`}
           >
-            <TrendingUp
+            <Coins
               className={`h-5 w-5 ${isGold ? "text-amber-600" : "text-slate-600"}`}
+              strokeWidth={1.75}
             />
           </div>
           <div>
@@ -174,12 +176,10 @@ export default function RatesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Metal Rates</h1>
-        <p className="text-muted-foreground mt-1">
-          Set daily gold and silver prices. These are used to calculate market value of all items.
-        </p>
-      </div>
+      <PageHeader
+        title="Metal Rates"
+        description="Set daily gold and silver prices. These are used to calculate market value of all items."
+      />
 
       {loading ? (
         <div className="grid gap-6 md:grid-cols-2">

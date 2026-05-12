@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GehnaGhar Inventory",
-  description: "Inventory and sales management for GehnaGhar jewellery shop",
+  title: "GahnaGhar Inventory",
+  description: "Inventory and sales management for GahnaGhar jewellery shop",
 };
 
 export default function RootLayout({

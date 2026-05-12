@@ -122,15 +122,15 @@
     @apply border-border outline-ring/50;
   }
   html {
-    font-size: 18px;
+    font-size: 16px;
     @apply font-sans;
   }
   body {
-    @apply bg-background text-foreground text-lg leading-relaxed;
+    @apply bg-background text-foreground text-base leading-relaxed;
   }
-  h1 { @apply text-3xl sm:text-4xl font-bold tracking-tight; }
-  h2 { @apply text-2xl sm:text-3xl font-semibold tracking-tight; }
-  h3 { @apply text-xl sm:text-2xl font-semibold; }
+  h1 { @apply text-2xl sm:text-3xl font-bold tracking-tight; }
+  h2 { @apply text-xl sm:text-2xl font-semibold tracking-tight; }
+  h3 { @apply text-lg sm:text-xl font-semibold; }
   label { @apply text-base font-medium; }
   input, select, textarea {
     @apply text-base;

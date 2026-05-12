@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Gem, LayoutDashboard, Package, TrendingUp, ShoppingBag, LogOut } from "lucide-react";
+import { Gem, LayoutDashboard, Boxes, Receipt, Coins, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/stock", label: "Stock", icon: Package },
-  { href: "/sales", label: "Sales", icon: ShoppingBag },
-  { href: "/rates", label: "Rates", icon: TrendingUp },
+  { href: "/stock", label: "Stock", icon: Boxes },
+  { href: "/sales", label: "Sales", icon: Receipt },
+  { href: "/rates", label: "Rates", icon: Coins },
 ];
 
 export function NavBar() {
@@ -34,7 +34,7 @@ export function NavBar() {
               <Gem className="h-5 w-5 text-amber-400" />
             </div>
             <div>
-              <span className="font-bold text-base tracking-tight text-amber-100">GehnaGhar</span>
+              <span className="font-bold text-base tracking-tight text-amber-100">GahnaGhar</span>
               <span className="hidden sm:inline text-amber-400/70 text-xs ml-1.5">Inventory</span>
             </div>
           </div>
@@ -51,7 +51,7 @@ export function NavBar() {
                     : "text-amber-100/60 hover:text-amber-100 hover:bg-amber-400/10"
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4" strokeWidth={1.75} />
                 {label}
               </Link>
             ))}
@@ -81,7 +81,7 @@ export function NavBar() {
                   : "text-amber-100/60 hover:text-amber-100 hover:bg-amber-400/10"
               )}
             >
-              <Icon className="h-3.5 w-3.5" />
+              <Icon className="h-4 w-4" strokeWidth={1.75} />
               {label}
             </Link>
           ))}
